@@ -61,7 +61,8 @@ class sugar_grain:
         screen_y = HEIGHT - pos.y * SCALE
 
         # Draw a small square at this position
-        pg.draw.rect(screen, pg.Color('white'), (screen_x - 1, screen_y - 1, 2, 2))
+        # changing the size of the sugra grain 
+        pg.draw.rect(screen, pg.Color('white'), (screen_x - 1, screen_y - 1, 4, 4))
 
     def delete(self):
         """

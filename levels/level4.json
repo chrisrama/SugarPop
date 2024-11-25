@@ -25,12 +25,20 @@
     "buckets": [
         {
             "x": 300,
+            "y": 300,
+            "width": 50,
+            "height": 40,
+            "needed_sugar": 30
+        },
+        {
+            "x": 50,
             "y": 50,
             "width": 50,
             "height": 40,
             "needed_sugar": 30
         }
-        
+
+
     ],
     "spout_x": 300,
     "spout_y": 650,

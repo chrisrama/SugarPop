@@ -17,6 +17,7 @@ import sugar_grain
 import bucket
 import level
 import message_display
+from audio import Start_game, Level_complete_sound
 
 class Game:
     def __init__(self) -> None:
@@ -29,7 +30,7 @@ class Game:
         self.font = pg.font.SysFont(None, 36)  # Default font, size 36
 
         # Create a Pymunk space with gravity
-        self.current_level = 2 # Start game at 0
+        self.current_level = 0 # Start game at 0
         self.level_complete = False
         self.space = pymunk.Space()
         self.space.gravity = (0, -9)  # Gravity pointing downwards in Pymunk's coordinate system
@@ -132,7 +133,7 @@ class Game:
         if self.iter == 60:
             self.iter = 0
 
-        pg.display.set_caption(f'fps: {self.clock.get_fps():.1f}')
+        pg.display.set_caption(f'Level : {self.current_level} fps: {self.clock.get_fps():.1f}')
         
         # Only do the following every 20 frames for less system stress
         if self.iter % 20 == 0:
@@ -147,6 +148,12 @@ class Game:
                     # If all the buckets are gone, level up!
                     if not self.level_complete and self.check_all_buckets_exploded():
                         self.level_complete = True
+                        #playing the sound of level complete
+                        channel = pg.mixer.find_channel()
+                        if channel:
+                            channel.play(Level_complete_sound)
+                            Level_complete_sound.fadeout(2000)
+                       #Level_complete_sound.play()
                         self.message_display.show_message("Level Complete!", 2)
                         pg.time.set_timer(LOAD_NEW_LEVEL, 2000)  # Schedule next level load
                 else:
@@ -180,7 +187,9 @@ class Game:
 
         # Only show the intro screen if we haven't loaded a level yet
         if self.intro_image:
+            Start_game.play()
             self.screen.blit(self.intro_image, (0, 0))  # Draw the intro image
+
     
         for bucket in self.buckets:
             bucket.draw(self.screen)
