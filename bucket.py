@@ -2,15 +2,17 @@
 # Module Name: Sugar Pop Bucket Module
 # Project: Sugar Pop Program
 # Date: Nov 17, 2024
-# By: Brett W. Huffman
+# By: Christian Ramazani
 # Description: The bucket implementation of the sugar pop game
 #############################################################
 
 import pygame as pg
 import pymunk
+import time
 from settings import SCALE, HEIGHT, WIDTH
 from math import sqrt
-from audio import Explosion_bucket_sound,Level_complete_sound,Bucket_On_target 
+from audio import *
+
 
 class Bucket:
     def __init__(self, space, x, y, width, height, needed_sugar):
@@ -29,7 +31,7 @@ class Bucket:
         self.height = height / SCALE
         self.count = 0  # Counter for collected sugar grains
         self.needed_sugar = needed_sugar
-
+        self.sound = Sound()  # loading the sound class
         wall_thickness = 0.2  # Thickness of the walls in physics units
 
         # Convert Pygame coordinates to Pymunk coordinates
@@ -61,6 +63,11 @@ class Bucket:
         space.add(self.bottom_wall)
         
         self.exploded = False  # Track if the bucket has exploded
+        self.last_grain_time = None # track the last grain
+
+        #self.sugar_grains = []  # Track sugar grains inside the bucket(i dont need this)
+
+    
 
     def explode(self, grains):
         """
@@ -69,11 +76,9 @@ class Bucket:
         :param grains: List of sugar grain objects in the game.
         """
         if self.exploded:
-    
             return  # Prevent multiple explosions
-        # playing the explosion sound
-        Explosion_bucket_sound.play()
-       
+        # playing the explosion sound when the bucket explod
+        self.sound.play_explosion()
 
         # Get the bucket's center position
         bucket_center_x = (self.left_wall.a[0] + self.right_wall.a[0]) / 2
@@ -101,8 +106,7 @@ class Bucket:
 
         # Remove the bucket walls
         self.space.remove(self.left_wall, self.right_wall, self.bottom_wall)
-         # playing the explosion sound
-        #Explosion_bucket_sound.play()
+         
 
         self.exploded = True  # Mark the bucket as exploded
         
@@ -140,7 +144,6 @@ class Bucket:
             return  # Don't count grains if the bucket has exploded
 
         grain_pos = sugar_grain.body.position
-
         # Get bucket boundaries
         left = self.left_wall.a[0]
         right = self.right_wall.a[0]
@@ -149,14 +152,14 @@ class Bucket:
 
         # Check if the grain's position is within the bucket's bounding box
         if left <= grain_pos.x <= right and bottom <= grain_pos.y <= top:
-            self.count += 1
-           # channel = pg.mixer.find_channel()
-            #if channel:
-            #    channel.play(Bucket_On_target)
-            Bucket_On_target.play()
-            return True  # Indicate that the grain was collected
-
-        return False  # Grain not collected
+                self.count += 1
+                if not sugar_grain.played:  # Only play sound if not already played 
+                    self.sound.play_bucket_hit()
+                    sugar_grain.played = True # indicate the sound has been played
+                return True  # indicate that the grain was collected
+        else:
+           
+            return False  # Grain not collected
 
     def delete(self):
         if not self.exploded:

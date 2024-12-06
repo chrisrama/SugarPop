@@ -1,8 +1,8 @@
 #############################################################
 # Module Name: Sugar Pop Main Module
 # Project: Sugar Pop Program
-# Date: Nov 17, 2024
-# By: Brett W. Huffman
+# Date: Dec 7, 2024
+# By: Christian Ramazani
 # Description: The main implementation of the sugar pop game
 #############################################################
 
@@ -16,8 +16,10 @@ import dynamic_item
 import sugar_grain
 import bucket
 import level
-import message_display
-from audio import Start_game, Level_complete_sound
+import message_display  
+from audio import *
+from HUD import HUD 
+import time 
 
 class Game:
     def __init__(self) -> None:
@@ -47,7 +49,8 @@ class Game:
         self.mouse_down = False
         self.current_line = None
         self.message_display = message_display.MessageDisplay(font_size=72)
-        
+        # loading the sound class
+        self.sound = Sound()
         # Load the intro image
         self.intro_image = pg.image.load("./images/SugarPop.png").convert()  # Load the intro image
         # Get new height based on correct scale
@@ -55,6 +58,16 @@ class Game:
         self.intro_image = pg.transform.scale(self.intro_image, (WIDTH, int(scale_height)))  # Scale to screen resolution
         
         pg.time.set_timer(LOAD_NEW_LEVEL, 2000)  # Load in 2 seconds
+        # creating the class for the head up display messages
+        self.hud = HUD(self.screen)
+        #ussed to chnage gravity attributes 
+        self.gravity_direction = 1
+        self.gravity_pos = "Down"
+        # setting the times limit 
+        self.is_pause = False
+
+       
+
 
     def load_level(self, levelnumber=0):
         # Destroy any current game objects
@@ -117,6 +130,10 @@ class Game:
 
     def update(self):
         '''Update the program physics'''
+        # pausing game
+        if self.is_pause == True:
+            return
+        
         # Keep an overall iterator
         self.iter += 1
         
@@ -148,13 +165,11 @@ class Game:
                     # If all the buckets are gone, level up!
                     if not self.level_complete and self.check_all_buckets_exploded():
                         self.level_complete = True
-                        #playing the sound of level complete
-                        channel = pg.mixer.find_channel()
-                        if channel:
-                            channel.play(Level_complete_sound)
-                            Level_complete_sound.fadeout(2000)
-                       #Level_complete_sound.play()
+                        
                         self.message_display.show_message("Level Complete!", 2)
+                        #playing the sound of level complete
+                        self.sound.play_level_complete()
+
                         pg.time.set_timer(LOAD_NEW_LEVEL, 2000)  # Schedule next level load
                 else:
                     bucket.count_reset()
@@ -171,23 +186,54 @@ class Game:
                 # Check if it's time to stop
                 if len(self.sugar_grains) >= self.total_sugar_count:
                     self.level_grain_dropping = False
+        # initializing the headup display module to becalled 
+        self.hud.update(
+        total_sugar=self.total_sugar_count,
+        sugar_in_buckets=self.buckets,  # Pass the list of bucket objects
+        sugar_left= len(self.sugar_grains),
+        level_count=self.current_level,gravity_pos = self.gravity_pos)
+       
+
 
     def draw_hud(self):
-        """Draw the HUD displaying the number of grains."""
-        # Prepare the text surface
+        """Drawing the head up display  the number of grains."""
+         #   self.screen.blit(text_surface, (10, 10))  # Position at top-left corner
         if self.total_sugar_count:
-            text_surface = self.font.render(f'{self.total_sugar_count - len(self.sugar_grains)}', True, (255, 255, 255))
-            # Draw the text surface on the screen
-            self.screen.blit(text_surface, (10, 10))  # Position at top-left corner
+            self.hud.draw() # calling the draw function from the head up display module
+    def toggle_gravity(self):
+        """reversing the gravity direction and update Head up display ."""
+        self.gravity_direction *= -1  # changing direction between 1 and -1
+        
+        #changin the gravity of 
+        self.space.gravity = (0, -9 * self.gravity_direction)
+        if self.gravity_direction == -1:  # check if the gravity direction is posit
+            self.gravity_pos = "Up"  # changing the position of the gravity 
+        else:
+            self.gravity_pos = "Down"
+        # displaying message gravity is down
+        self.message_display.show_message('Gravity now {0}'.format(self.gravity_pos), 1)
+    #pausing the game is the key space is press
+    def pause_game(self):
+        #self.message_display.show_message('Game is pause',1)
+        self.is_pause = not(self.is_pause)
+        if self.is_pause == True:
+            self.message_display.show_message('Game is pause',1)
+        else:
+            self.message_display.show_message('Game is playing',1)
+
+        
+         
+
+
+
 
     def draw(self):
         '''Draw the overall game. Should call individual item draw() methods'''
         # Clear the screen
         self.screen.fill('black')
-
         # Only show the intro screen if we haven't loaded a level yet
         if self.intro_image:
-            Start_game.play()
+            self.sound.play_start_game()
             self.screen.blit(self.intro_image, (0, 0))  # Draw the intro image
 
     
@@ -209,6 +255,7 @@ class Game:
         # Draw any static items
         for static in self.statics:
             static.draw(self.screen)
+        
 
         # Draw the nozzle (Remember to subtract y from the height)
         if self.level_spout_position:
@@ -221,7 +268,8 @@ class Game:
             )
         
         # Draw the heads-up display
-        self.draw_hud()
+        if self.total_sugar_count:
+            self.hud.draw()
 
         # Show any messages needed        
         self.message_display.draw(self.screen)
@@ -260,7 +308,17 @@ class Game:
                 self.level_grain_dropping = True
                 # Disable the timer after the first trigger
                 pg.time.set_timer(START_FLOW, 0)
-                
+                #checking if the gravity is bring change
+            elif event.type == pg.KEYDOWN: #createing a check of even when G is press the gravity change
+                if event.key == pg.K_g:  # Press 'G' to reverse gravity
+                    self.toggle_gravity()
+                    #self.pause_game()
+                elif event.key == pg.K_SPACE:
+                     self.pause_game()   
+            #elif event.type == pg.KEYDOWN: #createing a check of even when G is press the gravity change
+            #    if event.key == pg.K_p:  # Press 'G' to reverse gravity
+                    #self.toggle_gravity()
+                    #self.pause_game()      
             elif event.type == LOAD_NEW_LEVEL:
                 pg.time.set_timer(LOAD_NEW_LEVEL, 0)  # Clear the timer
                 self.intro_image = None
@@ -271,9 +329,21 @@ class Game:
                 else:
                     self.message_display.show_message(f"Level {self.current_level} Start!", 2)
                     
+                    
     def run(self):
         '''Run the main game loop'''
         while True:
+    # Calculate elapsed time
+           # elapsed_time = time.time() - self.start_time
+           # remaining_time = self.time_limit - elapsed_time
+
+    # Check if time is up
+            #if remaining_time <= 0:
+                #self.message_display.show_message("Time's up! Restarting level...", 10)
+               # self.restart_current_level()
+
+    # Render timer on the HUD
+                #self.hud.render_timer(remaining_time)
             self.check_events()
             self.update()
             self.draw()

@@ -1,8 +1,8 @@
 #############################################################
 # Module Name: Sugar Pop Sugar 'Grain' Module
 # Project: Sugar Pop Program
-# Date: Nov 17, 2024
-# By: Brett W. Huffman
+# Date: Dec 7, 2024
+# By: Christian Ramazani
 # Description: The sugar grain implementation of the sugar pop game
 #############################################################
 import pygame as pg
@@ -41,6 +41,8 @@ class sugar_grain:
 
         # Add the body and shape to the space
         self.space.add(self.body, self.shape)
+        # creating a flag to track the grain if it sound has been played
+        self.played = False
         
     def update(self):
         """

@@ -40,6 +40,7 @@ class Level:
         except (FileNotFoundError, json.JSONDecodeError) as e:
             print(f"Error loading level: {e}")
             self.data = {}
+        
 
     def save_level(self, level_file=None):
         """
