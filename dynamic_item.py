@@ -91,78 +91,48 @@ class DynamicItem:
             self.body = None
         # Clear the vertices list
         self.vertices = []
+#GOld does not work 
 
 
-# class MovingObstacle(DynamicItem):
-#     def __init__(self, space, x_start, x_end, y, speed=100, **kwargs):
-#         """
-#         Initialize a moving obstacle that oscillates horizontally.
-        
-#         :param space: The Pymunk space.
-#         :param x_start: Start x-position for movement.
-#         :param x_end: End x-position for movement.
-#         :param y: Fixed y-position of the obstacle.
-#         :param speed: Speed of the horizontal movement.
-#         """
-#         super().__init__(space, **kwargs)
-#         self.x_start = x_start
-#         self.x_end = x_end
-#         self.y = y
+# class MovingObject:
+#     def __init__(self, space, x, y, width, height, speed, boundaries, color='white'):
+#         self.space = space
+#         self.color = pg.Color(color)
 #         self.speed = speed
-#         self.current_direction = 1  # 1 for right, -1 for left
+#         self.boundaries = boundaries
 
-#         # Add a single horizontal segment
-#         self.add_vertex(x_start, y)
-#         self.add_vertex(x_start + 50, y)  # Width of the obstacle
+#         # Create a static Pymunk body (can be dynamic if physics are applied)
+#         self.body = pymunk.Body(body_type=pymunk.Body.KINEMATIC)
+#         self.body.position = x, y
 
-#     def update(self, delta_time):
-#         """
-#         Update the position of the obstacle.
-        
-#         :param delta_time: Time since the last update, used for consistent movement.
-#         """
-#         # Update position based on speed and direction
-#         x_movement = self.speed * self.current_direction * delta_time
+#         # Create a shape for collision and visualization
+#         self.shape = pymunk.Poly.create_box(self.body, (width, height))
+#         self.shape.color = (255, 255, 255, 255)
+#         self.shape.collision_type = 1  # Define collision type if needed
 
-#         # Calculate new position
-#         for vertex in self.vertices:
-#             new_x = vertex[0] + x_movement / SCALE
-#             if new_x < self.x_start / SCALE or new_x > self.x_end / SCALE:
-#                 self.current_direction *= -1  # Reverse direction
-#                 x_movement *= -1
-#                 break
-#             vertex = (new_x, vertex[1])
+#         # Add to space
+#         self.space.add(self.body, self.shape)
 
-#         # Recalculate all segments
-#         self.delete()  # Remove old segments
-#         for i in range(len(self.vertices) - 1):
-#             self.add_vertex(
-#                 self.vertices[i][0] * SCALE, 
-#                 HEIGHT - self.vertices[i][1] * SCALE
-#             )
-        
+#         self.direction = 1  # 1 for right, -1 for left
+
+#     def update(self):
+#         # Update position
+#         new_x = self.body.position.x + self.direction * self.speed / 60  # Adjust for frame rate
+#         if new_x < self.boundaries[0] or new_x > self.boundaries[1]:
+#             self.direction *= -1  # Reverse direction
+#         self.body.position = (new_x, self.body.position.y)
 
 #     def draw(self, screen):
-#         """Draws the moving obstacle."""
-#         super().draw(screen)
-#     def setup_dynamic_obstacles(self):
-#         self.moving_obstacles.append(dynamic_item.MovingObstacle(
-#             space=self.space,
-#             x_start=100,
-#             x_end=400,
-#             y=300,
-#             speed=100,
-#             color="blue",
-#             line_width=5
-#         ))
+#         # Draw the object
+#         pg.draw.rect(
+#             screen,
+#             self.color,
+#             pg.Rect(
+#                 self.body.position.x - 45, self.body.position.y - 40,
+#                 90, 80
+#             )
+#         )
 
-#         self.moving_obstacles.append(dynamic_item.MovingObstacle(
-#             space=self.space,
-#             x_start=200,
-#             x_end=500,
-#             y=400,
-#             speed=80,
-#             color="red",
-#             line_width=3
-#         ))
-
+#     def delete(self):
+#         # Remove from Pymunk space
+#         self.space.remove(self.body, self.shape)

@@ -12,6 +12,7 @@ import sys
 from settings import *
 import random
 import static_item
+from dynamic_item import *
 import dynamic_item
 import sugar_grain
 import bucket
@@ -19,7 +20,7 @@ import level
 import message_display  
 from audio import *
 from HUD import HUD 
-import time 
+import time
 
 class Game:
     def __init__(self) -> None:
@@ -60,11 +61,23 @@ class Game:
         pg.time.set_timer(LOAD_NEW_LEVEL, 2000)  # Load in 2 seconds
         # creating the class for the head up display messages
         self.hud = HUD(self.screen)
-        #ussed to chnage gravity attributes 
+        #use to chnage gravity attributes 
         self.gravity_direction = 1
         self.gravity_pos = "Down"
-        # setting the times limit 
+        # adding the pause flag
         self.is_pause = False
+
+        #GOld does not work
+        # self.moving_object = MovingObject(
+        #     space=self.space,
+        #     x=200,
+        #     y=300,
+        #     width=0.2,
+        #     height=0.1,
+        #     speed=50,  # Speed in pixels per second
+        #     boundaries=(100, 900),  # Left and right boundaries
+        #     color='white'
+        # )
 
        
 
@@ -101,10 +114,13 @@ class Game:
             # Load static items
             for nb in self.level.data['statics']:
                 self.statics.append(static_item.StaticItem(self.space, nb['x1'], nb['y1'], nb['x2'], nb['y2'], nb['color'], nb['line_width'], nb['friction'], nb['restitution']))
+                
             self.total_sugar_count = self.level.data['number_sugar_grains']
             pg.time.set_timer(START_FLOW, 5 * 1000)  # 5 seconds
             self.message_display.show_message("Level Up", 10)
             self.level_complete = False
+           
+
             return True
 
     def build_main_walls(self):
@@ -126,6 +142,7 @@ class Game:
         """
         Check if all buckets have exploded.
         """
+       #self.moving_object.delete() . # does not work part of gold
         return all(bucket.exploded for bucket in self.buckets)
 
     def update(self):
@@ -149,14 +166,15 @@ class Game:
         # Update our game counter
         if self.iter == 60:
             self.iter = 0
-
+      
         pg.display.set_caption(f'Level : {self.current_level} fps: {self.clock.get_fps():.1f}')
         
         # Only do the following every 20 frames for less system stress
         if self.iter % 20 == 0:
             # Update any messages
             self.message_display.update()
-            
+            #update the moving object
+            # self.moving_object.update() does not work part of gold
             # Calculate buckets count by counting each grain's position
             # First, explode or reset the counter on each bucket
             for bucket in self.buckets:
@@ -192,6 +210,7 @@ class Game:
         sugar_in_buckets=self.buckets,  # Pass the list of bucket objects
         sugar_left= len(self.sugar_grains),
         level_count=self.current_level,gravity_pos = self.gravity_pos)
+        
        
 
 
@@ -255,7 +274,13 @@ class Game:
         # Draw any static items
         for static in self.statics:
             static.draw(self.screen)
-        
+        #PArt of gold but does not work
+        ##self.screen.fill((255, 255, 255)) 
+        # self.moving_object.draw(self.screen)
+        # pg.display.flip()  # Update the display
+        # self.space.step(1 / 60.0)  # Step the Pymunk physics engine forward
+        # #print(self.moving_object.body.position)
+        # self.clock.tick(60)
 
         # Draw the nozzle (Remember to subtract y from the height)
         if self.level_spout_position:
@@ -279,6 +304,7 @@ class Game:
 
     def check_events(self):
         '''Check for keyboard and mouse events'''
+
         for event in pg.event.get():
             if event.type == EXIT_APP or event.type == pg.QUIT or (event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
                 pg.quit()
@@ -312,13 +338,9 @@ class Game:
             elif event.type == pg.KEYDOWN: #createing a check of even when G is press the gravity change
                 if event.key == pg.K_g:  # Press 'G' to reverse gravity
                     self.toggle_gravity()
-                    #self.pause_game()
                 elif event.key == pg.K_SPACE:
                      self.pause_game()   
-            #elif event.type == pg.KEYDOWN: #createing a check of even when G is press the gravity change
-            #    if event.key == pg.K_p:  # Press 'G' to reverse gravity
-                    #self.toggle_gravity()
-                    #self.pause_game()      
+               
             elif event.type == LOAD_NEW_LEVEL:
                 pg.time.set_timer(LOAD_NEW_LEVEL, 0)  # Clear the timer
                 self.intro_image = None
@@ -333,17 +355,6 @@ class Game:
     def run(self):
         '''Run the main game loop'''
         while True:
-    # Calculate elapsed time
-           # elapsed_time = time.time() - self.start_time
-           # remaining_time = self.time_limit - elapsed_time
-
-    # Check if time is up
-            #if remaining_time <= 0:
-                #self.message_display.show_message("Time's up! Restarting level...", 10)
-               # self.restart_current_level()
-
-    # Render timer on the HUD
-                #self.hud.render_timer(remaining_time)
             self.check_events()
             self.update()
             self.draw()

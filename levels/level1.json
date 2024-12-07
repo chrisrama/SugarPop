@@ -1,5 +1,15 @@
 {
     "number_sugar_grains": 50,
+    "dynamic_objects": [
+        {
+            "x": 300,
+            "y": 400, 
+            "width": 50, 
+            "height": 20, 
+            "speed": 100
+        
+        }
+    ],
     "statics": [
         {
             "x1": 100,

@@ -37,8 +37,6 @@ class Sound:
     def play_level_complete(self):
         self.play_sound("complete_level")
 
-    #def play_start_level(self):
-     #   self.Level_new_chanel.play(self.Level_start)
 # playing the sound once the sugar grain hit the bucket 
     def play_bucket_hit(self):
        # self.Hit_chanel.play(self.Hit_bucket,num)

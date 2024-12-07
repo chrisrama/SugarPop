@@ -21,6 +21,7 @@ class Level:
             "number_sugar_grains": 0,
             "static_boxes": [],
             "buckets": [],
+            "dynamic_objects": [],
             "time_to_complete_level": 0,
         }
         
@@ -71,6 +72,8 @@ class Level:
             "height": height
         })
 
+ 
+
     def add_bucket(self, x, y, width, height, number_sugar_grains):
         """
         Add a bucket to the level.
@@ -94,3 +97,4 @@ class Level:
         Set the time to complete the level.
         """
         self.data["time_to_complete_level"] = time_in_seconds
+

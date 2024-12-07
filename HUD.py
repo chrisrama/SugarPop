@@ -80,8 +80,13 @@ class HUD:
         self.screen.blit(gravity_surface, (400, 10))
 
         #drawing the instructions
-        pause_text =  'Press G to pause'
+        pause_text =  'Press space to pause'
         pause_surface = self.font.render(pause_text, True, self.font_color)
-        self.screen.blit(pause_surface,(500,10))
+        self.screen.blit(pause_surface,(800,10))
+        #drawing the gavity text message
+        gravity1_text = 'Press G to change gravity'
+        gravity1_text = self.font.render(gravity1_text, True, self.font_color)
+        self.screen.blit(gravity1_text,(800,25))
+
 
         
